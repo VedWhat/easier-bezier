@@ -1,0 +1,8 @@
+- [x] draw points on mouse click 
+- [x] draw lines between points
+- [x] implement the lerp function 
+- [x] linear bezier
+- [x] quadratic bezier 
+- [x] move the support points around
+- [x] cubic bezier
+- [x] higher order bezier?
