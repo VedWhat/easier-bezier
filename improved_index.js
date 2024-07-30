@@ -6,13 +6,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let tempCurve = [];
   let tempPoints = [];
   let curves = [];
-  let currentCurveOrder = 9;
+  let currentCurveOrder = 3;
   let mousePos;
   let incompleteCurve = false;
   const d = 0.1;
 
   let curveCollection = [];
-  const factorials = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
+  //0-18 stopping here because any larger and the representation of numbers gets messed up
+  const factorials = [
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600,
+    6227020800, 87178291200, 1307674368000, 20922789888000, 355687428096000,
+  ];
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
