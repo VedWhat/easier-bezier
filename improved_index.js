@@ -30,6 +30,14 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("mousedown", handleMouseDown);
   canvas.addEventListener("mouseup", handleMouseUp);
   window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      console.log("Escape key pressed");
+      tempPoints = [];
+      incompleteCurve = false;
+      redrawCanvas();
+    }
+  });
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Shift") isShiftPressed = true;
@@ -55,14 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       incompleteCurve = true;
 
-      let newPoint = {
-        x: mouseX,
-        y: mouseY,
-      };
+      let newPoint;
+      if (clickedPoint) {
+        newPoint = clickedPoint;
+      } else {
+        newPoint = {
+          x: mouseX,
+          y: mouseY,
+        };
+      }
       tempPoints.push(newPoint);
       console.log(tempPoints);
-      points.push(newPoint);
       if (tempPoints.length === currentCurveOrder + 1) {
+        points.push(...tempPoints);
+        console.log(points);
         calculateBezierForGeneralCurve(tempPoints, currentCurveOrder);
         tempPoints = [];
         incompleteCurve = false;
@@ -155,20 +169,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function redrawCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setLineDash([]);
 
     // Draw all points
     points.forEach((point) => {
       ctx.beginPath();
+      ctx.fillStyle = "red";
       ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI);
       ctx.fill();
+    });
+
+    tempPoints.forEach((point) => {
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = "green";
+      ctx.fill();
+      ctx.arc(point.x, point.y, 7, 0, 2 * Math.PI);
+      ctx.strokeStyle = "black";
+      ctx.stroke();
     });
 
     // Draw incomplete curve
     if (mousePos && incompleteCurve) {
       ctx.beginPath();
-      ctx.fillStyle = "red";
-      ctx.arc(mousePos.x, mousePos.y, 5, 0, 2 * Math.PI);
+      ctx.arc(mousePos.x, mousePos.y, 3, 0, 2 * Math.PI);
+      ctx.fillStyle = "blue";
       ctx.fill();
+      ctx.arc(mousePos.x, mousePos.y, 7, 0, 2 * Math.PI);
+      ctx.strokeStyle = "black";
+      ctx.stroke();
       ctx.setLineDash([5, 15]);
 
       for (let i = 0; i < tempPoints.length - 1; i++) {
@@ -234,6 +263,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     recalculateBezierCurves();
     redrawCanvas();
+  };
+
+  window.exportSVG = () => {
+    let svg = `<svg width="${canvas.width}" height="${canvas.height}" xmlns="http://www.w3.org/2000/svg">`;
+    curveCollection.forEach((c) => {
+      svg += `<path d="M ${c.curve[0].x} ${c.curve[0].y}`;
+      for (let i = 1; i < c.curve.length; i++) {
+        svg += ` L ${c.curve[i].x} ${c.curve[i].y}`;
+      }
+      svg += `" fill="none" stroke="black" stroke-width="2"/>`;
+    });
+    svg += "</svg>";
+
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bezier.svg";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   redrawCanvas();
