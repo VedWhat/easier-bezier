@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let draggedPoint;
   let isShiftPressed = false;
 
+  let undoStack = [];
+
   let curveCollection = [];
   //0-18 stopping here because any larger and the representation of numbers gets messed up
   const factorials = [
@@ -30,12 +32,31 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("mousedown", handleMouseDown);
   canvas.addEventListener("mouseup", handleMouseUp);
   window.addEventListener("resize", resizeCanvas);
-  window.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      console.log("Escape key pressed");
       tempPoints = [];
       incompleteCurve = false;
       redrawCanvas();
+      console.log("Removing element from stack");
+      undoStack.pop();
+      console.log(undoStack);
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "z" && e.ctrlKey) {
+      if (undoStack.length > 1) {
+        undoStack.pop();
+        const prevState = undoStack[undoStack.length - 1];
+        points = prevState.points;
+        tempPoints = prevState.tempPoints;
+        curveCollection = prevState.curveCollection;
+        incompleteCurve = prevState.incompleteCurve;
+        console.log("Restoring to previous state:");
+        console.log(prevState.tempPoints);
+
+        redrawCanvas();
+      }
     }
   });
 
@@ -59,7 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (clickedPoint && isShiftPressed) {
       dragging = true;
       draggedPoint = clickedPoint;
-      console.log("dragging");
     } else {
       incompleteCurve = true;
 
@@ -73,19 +93,35 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       }
       tempPoints.push(newPoint);
-      console.log(tempPoints);
       if (tempPoints.length === currentCurveOrder + 1) {
         points.push(...tempPoints);
-        console.log(points);
         calculateBezierForGeneralCurve(tempPoints, currentCurveOrder);
         tempPoints = [];
         incompleteCurve = false;
       }
     }
+    updateStack();
     redrawCanvas();
   }
 
+  function updateStack() {
+    // console.log("Updating stack");
+    if (undoStack.length > 10) {
+      undoStack.shift();
+    }
+    state = {
+      points: [...points],
+      tempPoints: [...tempPoints],
+      curveCollection: [...curveCollection],
+      incompleteCurve: incompleteCurve,
+    };
+    undoStack.push(state);
+    // console.log(state.points);
+  }
+
   function handleMouseUp(e) {
+    console.log(points);
+    updateStack();
     if (dragging) {
       dragging = false;
       draggedPoint = null;

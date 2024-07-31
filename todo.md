@@ -6,3 +6,7 @@
 - [x] move the support points around
 - [x] cubic bezier
 - [x] higher order bezier?
+- [x] implement general bezier curve calculation 
+- [x] better datastructure for curves
+- [x] implement a better undo stack 
+- [ ] fix undo for movement
