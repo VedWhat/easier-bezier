@@ -5,22 +5,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>easier-bézier</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #dock-wrapper {
+            transition: all 0.3s ease-in-out;
+        }
+
+        #dock-wrapper.hidden-dock {
+            margin-bottom: -80px;
+            opacity: 0.2;
+        }
+
+        #dock-wrapper.visible-dock {
+            margin-bottom: 0;
+            opacity: 1;
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-gray-100">
     <div id="app">
-        <div id="controls">
-            <input type="number" id="curve-order" min="1" max="18" value="1">
-            <button onclick="setCurveOrder()">Set Curve Order</button>
-            <input type="number" id="delta" value="0.1" max="1" step="0.01">
-            <button onclick="setDelta()">Set Delta</button>
-            <button onclick="clearCanvas()">Clear Canvas</button>
-            <button onclick="exportSVG()">Export SVG</button>
+        <div class="fixed top-4 left-4 z-10 bg-white/90 p-4 rounded shadow text-sm">
+            <h2 class="font-semibold mb-2">Legend</h2>
+            <ul class="space-y-1">
+                <li><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span> Anchor Point</li>
+                <li><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span> Current Segment</li>
+                <li><span class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span> Mouse Preview</li>
+            </ul>
+            <div class="mt-3">
+                <p><kbd>Ctrl+Z</kbd> Undo</p>
+                <p><kbd>Esc</kbd> Cancel Curve</p>
+                <p><kbd>Shift+Drag</kbd> Move Point</p>
+            </div>
         </div>
-        <canvas id="canvas"></canvas>
+
+        <div id="dock-wrapper" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 hidden-dock"
+            onmouseenter="showDock()" onmouseleave="maybeHideDock()">
+            <div id="dock" class="p-4 rounded-t shadow bg-white/90 flex flex-wrap gap-4 items-center text-sm">
+                <div class="flex flex-col">
+                    <label for='curve-order'>Curve Order</label>
+                    <input type='number' id='curve-order' class='border px-2 py-1 rounded' min='1' max='18' value='1'>
+                </div>
+                <div class="flex flex-col">
+                    <label for='delta'>Delta</label>
+                    <input type='number' id='delta' class='border px-2 py-1 rounded' value='0.1' max='1' step='0.01'>
+                </div>
+                <button onclick='setCurveOrder()' class='px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 border'>Set
+                    Order</button>
+                <button onclick='setDelta()' class='px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 border'>Set
+                    Delta</button>
+                <button onclick='clearCanvas()'
+                    class='px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 border'>Clear</button>
+                <button onclick='exportSVG()' class='px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 border'>Export
+                    SVG</button>
+                <input type='file' accept='image/*' onchange='uploadBackground(event)'
+                    class='px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 border'>
+                <label class='text-xs mt-2 inline-flex items-center gap-1'>
+                    <input type='checkbox' id='dock-fixed-toggle' class='form-checkbox'
+                        onchange='toggleDockFixed(this)'> Fix Dock
+                </label>
+            </div>
+        </div>
+
+        <canvas id="canvas" class="absolute top-0 left-0 z-0"></canvas>
     </div>
-    <!-- <script src="index.js"></script> -->
+
+    <script>
+        let dockFixed = false;
+
+        function showDock() {
+            const wrapper = document.getElementById("dock-wrapper");
+            wrapper.classList.remove("hidden-dock");
+            wrapper.classList.add("visible-dock");
+        }
+
+        function maybeHideDock() {
+            if (!dockFixed) {
+                const wrapper = document.getElementById("dock-wrapper");
+                wrapper.classList.remove("visible-dock");
+                wrapper.classList.add("hidden-dock");
+            }
+        }
+
+        function toggleDockFixed(checkbox) {
+            dockFixed = checkbox.checked;
+            if (dockFixed) {
+                showDock();
+            } else {
+                maybeHideDock();
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            showDock();
+            setTimeout(() => {
+                maybeHideDock();
+            }, 2000);
+        });
+    </script>
+
     <script src="improved_index.js"></script>
 </body>
 
